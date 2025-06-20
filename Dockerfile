@@ -1,12 +1,12 @@
-FROM node:22.11.0-bullseye-slim as node
+FROM node:22.16.0-bullseye-slim AS node
 
-FROM ubuntu:24.04
+FROM ubuntu:25.04
 
 COPY --from=node /usr/local/ /usr/local/
 
 WORKDIR /app
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Common libraries
 RUN apt-get update && \
@@ -29,7 +29,7 @@ RUN apt-get update && \
    apt-get remove -y --auto-remove python3-pip && \
    rm -rf /var/lib/apt/lists/*
 
-RUN corepack disable && corepack enable
+RUN corepack disable && corepack cache clean && corepack prepare pnpm@latest --activate && corepack enable
 
 # Some additional MS fonts for better WMF conversion
 COPY fonts/*.ttf /usr/share/fonts/
@@ -44,7 +44,8 @@ COPY . .
 
 RUN pnpm install --offline
 
-ARG NODE_ENV
+ARG NODE_ENV=production
+ARG TARGETPLATFORM
 ENV NODE_ENV=$NODE_ENV
 
 RUN if [ "$NODE_ENV" = "production" ] ; \
@@ -53,7 +54,7 @@ RUN if [ "$NODE_ENV" = "production" ] ; \
 
 # helper for reaping zombie processes
 ARG TINI_VERSION=0.19.0
-ADD https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static /tini
+ADD https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-$TARGETPLATFORM /tini
 RUN chmod +x /tini
 ENTRYPOINT [ "/tini", "--" ]
 
