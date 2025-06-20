@@ -54,7 +54,7 @@ RUN if [ "$NODE_ENV" = "production" ] ; \
 
 # helper for reaping zombie processes
 ARG TINI_VERSION=0.19.0
-ADD https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-$TARGETPLATFORM /tini
+ADD https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-${TARGETPLATFORM#linux/} /tini
 RUN chmod +x /tini
 ENTRYPOINT [ "/tini", "--" ]
 
